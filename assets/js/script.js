@@ -1,145 +1,96 @@
-let h = 0;
-let m = 0;
-let s = 0;
-let ms = 0;
+let h = 0, m = 0, s = 0, ms = 0;
 let delay = 10;
-let sInterval;
+let interval = null;
 
+// Utilitário para formatar tempo com dois dígitos
+const format = (val) => val < 10 ? "0" + val : val;
 
+// Seletores centralizados
+const elements = {
+    hour: document.getElementById('hour'),
+    minute: document.getElementById('minute'),
+    second: document.getElementById('second'),
+    milisecond: document.getElementById('milisecond'),
+    dataHora: document.getElementById('dataHora'),
+    startBTN: document.getElementById('start'),
+    stopBTN: document.getElementById('stop'),
+    resetBTN: document.getElementById('reset'),
+};
 
-//START
+// Atualiza a exibição do tempo
+function updateDisplay() {
+    elements.milisecond.innerText = format(ms);
+    elements.second.innerText = format(s);
+    elements.minute.innerText = format(m);
+    elements.hour.innerText = format(h);
+}
 
-function start(){
-    const hour = document.getElementById('hour');
-    const minute = document.getElementById('minute');
-    const second = document.getElementById('second');
-    const milisecond = document.getElementById('milisecond');
+// Atualiza a data e hora atual
+function updateDateTime() {
+    const now = new Date();
+    const day = format(now.getDate());
+    const month = format(now.getMonth() + 1);
+    const year = now.getFullYear();
+    const hours = format(now.getHours());
+    const minutes = format(now.getMinutes());
+    const seconds = format(now.getSeconds());
 
-    //
-        const startBTN = document.getElementById('start');
-        const stopBTN = document.getElementById('stop');
-        const resetBTN = document.getElementById('reset');
+    elements.dataHora.innerText = `${day}/${month}/${year} ${hours}h ${minutes}m ${seconds}s`;
+}
 
-        let startNone = startBTN.style.display = "none";
-        let stopBlock= stopBTN.style.display = "block";
-        let resetBlock= resetBTN.style.display = "block";
-
-        startNone;
-        stopBlock;
-        resetBlock;
-    //
-
-    if(!sInterval){
-        sInterval = setInterval(start, delay);
-    }
-
-    ms = ms + 1;
-
-    milisecond.innerText = ms < 10 ? "0" + ms : ms;
-
-    if(ms >= 99){
+// Lógica do cronômetro
+function runTimer() {
+    ms++;
+    if (ms >= 99) {
         ms = 0;
         s++;
-
-        second.innerText = s < 10 ? "0" + s : s;
-
-        const dataHora = document.getElementById('dataHora');
-        let date = new Date();
-        let day = date.getDate();
-        let month = date.getMonth() + 1;
-        let year = date.getFullYear();
-
-        let time = date.getHours();
-        let min = date.getMinutes();
-        let sec = date.getSeconds();
-
-        let fullSec = sec < 10 ? "0" + sec : sec;
-        let fullDay = day < 10 ? "0" + day : day;
-        let fullMonth = month < 10 ? "0" + month : month;
-        let fullMin = min < 10 ? "0" + min : min;
-        let fullTime = time < 10 ? "0" + time : time;
-
-        dataHora.innerText = fullDay + "/" + fullMonth + "/" + year + " " + fullTime + "h " + fullMin + "m " + fullSec + "s";
-
-            if(s >= 60){
-                s = 0;
-                m++;
-                  
-                minute.innerText = m < 10 ? "0" + m : m;
-
-                dataHora.innerText = new Date();
-
-                    if(m >= 60){
-                        m = 0
-                        h++;
-
-                        hour.innerText = h < 10 ? "0" + h : h;
-                    }
+        if (s >= 60) {
+            s = 0;
+            m++;
+            if (m >= 60) {
+                m = 0;
+                h++;
             }
+        }
+        updateDateTime();
+    }
+    updateDisplay();
+}
+
+// Atualiza visibilidade dos botões
+function updateButtons({ start, stop, reset }) {
+    elements.startBTN.style.display = start ? "block" : "none";
+    elements.stopBTN.style.display = stop ? "block" : "none";
+    elements.resetBTN.style.display = reset ? "block" : "none";
+}
+
+// Botões
+
+function start() {
+    if (!interval) {
+        interval = setInterval(runTimer, delay);
+        updateButtons({ start: false, stop: true, reset: true });
     }
 }
 
-
-
-//RESET
-
-function reset(){
-
-    clearInterval(sInterval);
-    sInterval = null;
-
-    const hour = document.getElementById('hour');
-    const minute = document.getElementById('minute');
-    const second = document.getElementById('second');
-    const milisecond = document.getElementById('milisecond');
-
-    //
-        const startBTN = document.getElementById('start');
-        const stopBTN = document.getElementById('stop');
-        const resetBTN = document.getElementById('reset');
-
-        let startBlock = startBTN.style.display = "block";
-        let stopNone= stopBTN.style.display = "none";
-        let resetBlock= resetBTN.style.display = "stop";
-
-        startBlock;
-        stopNone;
-        resetBlock;
-    //
-
-    milisecond.innerText = '00';
-    ms = 0;
-    
-    second.innerText = '00';
-    s = 0;
-   
-    minute.innerText = '00';
-    m = 0;
-   
-    hour.innerText = '00';
-    h = 0;
-
+function stop() {
+    clearInterval(interval);
+    interval = null;
+    updateButtons({ start: true, stop: false, reset: true });
 }
 
-
-//STOP
-
-function stop(){
-    clearInterval(sInterval);
-
-    sInterval = null;
-
-    //
-        const startBTN = document.getElementById('start');
-        const stopBTN = document.getElementById('stop');
-        const resetBTN = document.getElementById('reset');
-
-        let startBlock = startBTN.style.display = "block";
-        let stopNone= stopBTN.style.display = "none";
-        let resetBlock= resetBTN.style.display = "block";
-
-        startBlock;
-        stopNone;
-        resetBlock;
-    //
+function reset() {
+    stop();
+    h = m = s = ms = 0;
+    updateDisplay();
+    updateDateTime();
+    updateButtons({ start: true, stop: false, reset: false });
 }
+
+// Inicializa botões
+elements.startBTN.addEventListener('click', start);
+elements.stopBTN.addEventListener('click', stop);
+elements.resetBTN.addEventListener('click', reset);
+
+// Estado inicial
+reset();
